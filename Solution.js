@@ -102,8 +102,8 @@ class LinkedList {
             this.head = new ListNode(coordinates);
             this.tail = this.head;
         } else {
-            this.temp.next = new ListNode(coordinates);
-            this.tail = this.temp.next;
+            this.tail.next = new ListNode(coordinates);
+            this.tail = this.tail.next;
         }
     }
 
