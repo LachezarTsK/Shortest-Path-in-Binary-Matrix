@@ -1,78 +1,56 @@
 
 import java.util.LinkedList;
+import java.util.Queue;
 
 public class Solution {
 
-    int width;
-    int height;
-    int[][] moves = {
-        {-1, 0},//up.
-        {1, 0},//down.
-        {0, -1},//left.
-        {0, 1},//right.
-        {-1, -1},//up, left.
-        {1, -1},//down, left.
-        {1, 1},//down, right.
-        {-1, 1}//up, right.
-    };
+    private static record Point(int row, int column) {}
+    private static final int[][] MOVES = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
+    private static final int THERE_IS_NO_PATH = -1;
+    private static final int OBSTACLE = 1;
+    private static final int EMPTY_POINT = 0;
+    int rows;
+    int columns;
 
-    public int shortestPathBinaryMatrix(int[][] matrix) {
-        height = matrix.length;
-        width = matrix[0].length;
-        return breadthFirstSearch(0, 0, matrix);
+    public int shortestPathBinaryMatrix(int[][] grid) {
+        rows = grid.length;
+        columns = grid[0].length;
+        return breadthFirstSearch(grid);
     }
 
-    public int breadthFirstSearch(int startRow, int startColumn, int[][] matrix) {
-        if (matrix[startRow][startColumn] == 1) {
-            return -1;
+    private int breadthFirstSearch(int[][] grid) {
+        if (grid[0][0] == OBSTACLE || grid[rows - 1][columns - 1] == OBSTACLE) {
+            return THERE_IS_NO_PATH;
         }
-
-        LinkedList<Point> queue = new LinkedList<>();
-        queue.add(new Point(startRow, startColumn));
-
-        int stepsToGoal = 0;
-        matrix[startRow][startColumn] = 1;
-        int sizeMoves = moves.length;
+        Queue<Point> queue = new LinkedList<>();
+        queue.add(new Point(0, 0));
+        grid[0][0] = OBSTACLE;
+        int distance = 1;
 
         while (!queue.isEmpty()) {
-            stepsToGoal++;
-            int stepsInCurrentMove = queue.size();
+            for (int i = queue.size() - 1; i >= 0; --i) {
 
-            while (stepsInCurrentMove-- > 0) {
-                Point point = queue.removeFirst();
-                int r = point.row;
-                int c = point.column;
-
-                if (r == height - 1 && c == width - 1) {
-                    return stepsToGoal;
+                Point point = queue.poll();
+                if (point.row == rows - 1 && point.column == columns - 1) {
+                    return distance;
                 }
 
-                for (int i = 0; i < sizeMoves; i++) {
-                    int new_r = r + moves[i][0];
-                    int new_c = c + moves[i][1];
-                    if (isInMatrix(new_r, new_c) && matrix[new_r][new_c] == 0) {
-                        queue.add(new Point(new_r, new_c));
-                        matrix[new_r][new_c] = 1;
+                for (int[] move : MOVES) {
+                    int row = point.row + move[0];
+                    int column = point.column + move[1];
+
+                    if (pointIsInGrid(row, column) && grid[row][column] == EMPTY_POINT) {
+                        grid[row][column] = OBSTACLE;
+                        queue.add(new Point(row, column));
                     }
                 }
             }
-
+            ++distance;
         }
-        return -1;
+        return THERE_IS_NO_PATH;
     }
 
-    public boolean isInMatrix(int row, int column) {
-        return row >= 0 && row < height && column >= 0 && column < width;
-    }
-}
-
-class Point {
-
-    int row;
-    int column;
-
-    public Point(int row, int column) {
-        this.row = row;
-        this.column = column;
+    private boolean pointIsInGrid(int row, int column) {
+        return row >= 0 && row < rows && column >= 0 && column < columns;
     }
 }
