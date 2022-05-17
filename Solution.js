@@ -1,122 +1,68 @@
 
-const moves = [
-    [-1, 0], //up.
-    [1, 0], //down.
-    [0, -1], //left.
-    [0, 1], //right.
-    [-1, -1], //up, left.
-    [1, -1], //down, left.
-    [1, 1], //down, right.
-    [-1, 1]//up, right.
-];
-
 /**
- * @param {number[][]} matrix
+ * @param {number[][]} grid
  * @return {number}
  */
-var shortestPathBinaryMatrix = function (matrix) {
-    let height = matrix.length;
-    let width = matrix[0].length;
-    return breadthFirstSearch(0, 0, matrix, height, width);
+var shortestPathBinaryMatrix = function (grid) {
+    this.MOVES = [[-1, 0], [1, 0], [0, -1], [0, 1], [1, 1], [-1, -1], [1, -1], [-1, 1]];
+    this.THERE_IS_NO_PATH = -1;
+    this.OBSTACLE = 1;
+    this.EMPTY_POINT = 0;
+    this.rows = grid.length;
+    this.columns = grid[0].length;
+    return breadthFirstSearch(grid);
 };
 
 /**
- * @param {number} startRow
- * @param {number} startColumn 
- * @param {number[][]} matrix
- * @param {number} height
- * @param {number} width 
+ * @param {number} row
+ * @param {number} column
+ */
+function Point(row, column) {
+    this.row = row;
+    this.column = column;
+}
+
+/**
+ * @param {number[][]} grid
  * @return {number}
  */
-function breadthFirstSearch(startRow, startColumn, matrix, height, width) {
-    if (matrix[startRow][startColumn] === 1) {
-        return -1;
+function breadthFirstSearch(grid) {
+    if (grid[0][0] === this.OBSTACLE || grid[rows - 1][columns - 1] === this.OBSTACLE) {
+        return this.THERE_IS_NO_PATH;
     }
+    const queue = new Queue();
+    queue.enqueue(new Point(0, 0));
+    grid[0][0] = this.OBSTACLE;
+    let distance = 1;
 
-    let queue = new LinkedList();
-    queue.addToTail([startRow, startColumn]);
+    while (!queue.isEmpty()) {
+        for (let i = queue.size() - 1; i >= 0; --i) {
 
-    let stepsToGoal = 0;
-    matrix[startRow][startColumn] = 1;
-    let sizeMoves = moves.length;
-
-    while (queue.size > 0) {
-        stepsToGoal++;
-        let stepsInCurrentMove = queue.size;
-
-        while (stepsInCurrentMove-- > 0) {
-            let node = queue.removeFirst();
-            let r = node.coordinates[0];
-            let c = node.coordinates[1];
-
-            if (r === height - 1 && c === width - 1) {
-                return stepsToGoal;
+            const point = queue.dequeue();
+            if (point.row === this.rows - 1 && point.column === this.columns - 1) {
+                return distance;
             }
 
-            for (let i = 0; i < sizeMoves; i++) {
-                let new_r = r + moves[i][0];
-                let new_c = c + moves[i][1];
-                if (isInMatrix(new_r, new_c, width, height) && matrix[new_r][new_c] === 0) {
-                    queue.addToTail([new_r, new_c]);
-                    matrix[new_r][new_c] = 1;
+            for (let move of this.MOVES) {
+                let row = point.row + move[0];
+                let column = point.column + move[1];
+
+                if (pointIsInGrid(row, column) && grid[row][column] === this.EMPTY_POINT) {
+                    grid[row][column] = this.OBSTACLE;
+                    queue.enqueue(new Point(row, column));
                 }
             }
         }
+        ++distance;
     }
-    return -1;
+    return this.THERE_IS_NO_PATH;
 }
 
 /**
- * @param {numberow} row
- * @param {number} column 
- * @param {number} height
- * @param {number} width 
+ * @param {number} row
+ * @param {number} column
  * @return {boolean}
  */
-function isInMatrix(row, column, height, width) {
-    return row >= 0 && row < height && column >= 0 && column < width;
-
-}
-
-/**
- * @param {number[]} coordinates
- * @param {ListNode} next
- */
-function ListNode(coordinates, next) {
-    this.coordinates = (coordinates === undefined ? 0 : coordinates);
-    this.next = (next === undefined ? null : next);
-}
-
-class LinkedList {
-
-    constructor() {
-        this.head = null;
-        this.tail = null;
-        this.size = 0;
-    }
-
-    addToTail(coordinates) {
-
-        this.size++;
-        if (this.head === null) {
-            this.head = new ListNode(coordinates);
-            this.tail = this.head;
-        } else {
-            this.tail.next = new ListNode(coordinates);
-            this.tail = this.tail.next;
-        }
-    }
-
-    removeFirst() {
-
-        this.size--;
-        let temp = this.head;
-        if (this.head.next === null) {
-            this.head = null;
-            this.tail = this.head;
-        } else {
-            this.head = this.head.next;
-        }
-        return temp;
-    }
+function pointIsInGrid(row, column) {
+    return row >= 0 && row < this.rows && column >= 0 && column < this.columns;
 }
